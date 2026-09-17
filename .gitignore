@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+
+# Vendor files under NDA -- do not commit
+Minew Tech Files*/
+
+# Real deployment config (station IPs, measured heights, calibration
+# offsets) -- machine/site specific and changes constantly during tuning.
+# Copy config.example.json to config.json and fill in your own values.
+config.json
