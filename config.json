@@ -34,6 +34,6 @@
   },
   "smoothing": {
     "window": 7,
-    "tag_timeout_s": 5.0
+    "tag_timeout_s": 120.0
   }
 }
