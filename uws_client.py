@@ -30,6 +30,7 @@ import tag_tracker as tt
 
 log = logging.getLogger("uws")
 
+FIRST_FIX_WAIT_S = 15.0
 TX_CMD = "1"  # Head TxCMD: device command id
 TYPE_GATEWAY = 1
 TYPE_BEACON = 2
@@ -114,12 +115,17 @@ def start_sender_thread() -> threading.Thread | None:
         return None
 
     def _loop():
+        # First send goes out right away -- but give the receiver up to
+        # FIRST_FIX_WAIT_S to hear a registered beacon, or there is nothing to send.
+        deadline = time.time() + FIRST_FIX_WAIT_S
+        while time.time() < deadline and not tt.get_snapshot():
+            time.sleep(0.5)
         while True:
-            time.sleep(uws_cfg["interval_s"])
             try:
                 send_once(uws_cfg)
-            except Exception as exc:
+            except Exception:
                 log.exception("unexpected error")
+            time.sleep(uws_cfg["interval_s"])
 
     t = threading.Thread(target=_loop, daemon=True)
     t.start()
