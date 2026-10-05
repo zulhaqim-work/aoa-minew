@@ -10,7 +10,6 @@ configure_station.py first, or just run run_aoa.py which does both.
 import os
 
 import tag_tracker as tt
-import uws_client
 
 REFRESH_INTERVAL_S = 0.3
 
@@ -35,7 +34,6 @@ def render_table(tags: dict):
 def main():
     tt.load_all_scan_configs()
     sock = tt.open_socket(REFRESH_INTERVAL_S)
-    uws_client.start_sender_thread()
     print(f"Listening for base station notifications on UDP 0.0.0.0:{tt.LOCAL_PORT} ...")
 
     while True:

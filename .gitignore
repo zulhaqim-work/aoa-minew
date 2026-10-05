@@ -4,3 +4,4 @@ __pycache__/
 # Vendor files under NDA -- do not commit
 Minew Tech Files*/
 uws_seq.json
+app.log

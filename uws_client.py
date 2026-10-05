@@ -19,6 +19,7 @@ corr_x / corr_y are room-coordinate meters (floats), as computed by tag_tracker.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import threading
 import time
@@ -26,6 +27,8 @@ import time
 import requests
 
 import tag_tracker as tt
+
+log = logging.getLogger("uws")
 
 TYPE_GATEWAY = 1
 TYPE_BEACON = 2
@@ -91,15 +94,13 @@ def send_once(uws_cfg: dict) -> None:
 
     for payload in build_payloads(uws_cfg, tt.get_snapshot()):
         gw = payload["Data1"]["uwsid"]
+        log.info("SEND %s", json.dumps(payload))
         try:
             resp = requests.post(uws_cfg["url"], json=payload, headers=headers,
                                  timeout=uws_cfg["timeout_s"])
-            if resp.status_code == 200:
-                print(f"[uws] {gw}: sent {len(payload['Data1']['beacons'])} beacon(s) -> {resp.text[:200]}")
-            else:
-                print(f"[uws] {gw}: HTTP {resp.status_code} {resp.text[:200]}")
+            log.info("RECV HTTP %s %s", resp.status_code, resp.text.strip())
         except requests.RequestException as exc:
-            print(f"[uws] {gw}: send failed, will retry next cycle ({exc})")
+            log.error("send failed for %s, will retry next cycle (%s)", gw, exc)
 
 
 def start_sender_thread() -> threading.Thread | None:
@@ -108,7 +109,7 @@ def start_sender_thread() -> threading.Thread | None:
     if not uws_cfg["enabled"]:
         return None
     if not uws_cfg["url"]:
-        print("[uws] enabled but uws.url is empty -- sender not started")
+        log.error("uws.enabled but uws.url is empty -- sender not started")
         return None
 
     def _loop():
@@ -117,9 +118,9 @@ def start_sender_thread() -> threading.Thread | None:
             try:
                 send_once(uws_cfg)
             except Exception as exc:
-                print(f"[uws] unexpected error: {exc}")
+                log.exception("unexpected error")
 
     t = threading.Thread(target=_loop, daemon=True)
     t.start()
-    print(f"[uws] sending to {uws_cfg['url']} every {uws_cfg['interval_s']}s")
+    log.info("sending to %s every %ss", uws_cfg["url"], uws_cfg["interval_s"])
     return t
