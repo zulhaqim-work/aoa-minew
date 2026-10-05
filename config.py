@@ -41,6 +41,24 @@ config.json fields:
                           overrides, keyed by the beacon's MAC address (as
                           printed by listen_data.py/visualize.py).
 
+  beacons.registered      [{"mac": "AA:BB:CC:DD:EE:FF", "uwsid": "1.2.2.1",
+                            "name": "Pallet Jack #7"}, ...]
+                          The beacons this system tracks. Anything not listed is
+                          ignored at capture time, and only these are reported to
+                          the UWS server (its payload carries uwsid, not MAC).
+                          "name" is for display/logs only.
+
+  stations[].uws_id       UWS server id of this station (the "gateway", e.g.
+                           "1.2.2.0"). A station without one is not sent.
+
+  uws.enabled             true to push positions to the UWS server.
+  uws.url                 Full URL of the scan endpoint.
+  uws.api_key             Sent as the X-API-Key header (omitted if empty).
+  uws.interval_s          Seconds between sends.
+  uws.mode                Head MODE field: 0 = normal, 1 = training/simulation.
+  uws.exe                 Head EXE field.
+  uws.timeout_s           HTTP timeout per request.
+
   smoothing.window        How many recent angle readings to median-filter
                            per beacon before displaying/plotting it.
   smoothing.tag_timeout_s How many seconds of silence before a beacon is
@@ -49,6 +67,8 @@ config.json fields:
 
 import json
 import os
+
+UWS_VERSION = "1.0.2"  # Head VER field sent to the UWS server (not configurable)
 
 _CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
@@ -69,6 +89,19 @@ def load(path: str = _CONFIG_PATH) -> dict:
     beacons = cfg.setdefault("beacons", {})
     beacons.setdefault("default_height_m", 1.0)
     beacons.setdefault("height_overrides_m", {})
+    beacons.setdefault("registered", [])
+    for b in beacons["registered"]:
+        b["mac"] = b["mac"].upper()
+
+    uws = cfg.setdefault("uws", {})
+    uws.setdefault("enabled", False)
+    uws.setdefault("url", "")
+    uws.setdefault("api_key", "")
+    uws.setdefault("interval_s", 5)
+    uws.setdefault("mode", 0)
+    uws["version"] = UWS_VERSION
+    uws.setdefault("exe", "uwsd_Asset")
+    uws.setdefault("timeout_s", 10)
 
     smoothing = cfg.setdefault("smoothing", {})
     smoothing.setdefault("window", 7)
@@ -79,6 +112,11 @@ def load(path: str = _CONFIG_PATH) -> dict:
 
 def stations_by_ip(cfg: dict) -> dict:
     return {s["ip"]: s for s in cfg["stations"]}
+
+
+def registered_beacons(cfg: dict) -> dict:
+    """MAC (upper-case) -> {"mac", "uwsid", "name"} for every registered beacon."""
+    return {b["mac"]: b for b in cfg["beacons"]["registered"]}
 
 
 def beacon_height_m(cfg: dict, tag_mac: str) -> float:

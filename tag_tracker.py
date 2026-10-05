@@ -35,6 +35,7 @@ from aoa_estimate import estimate_aoa, project_to_floor
 
 CFG = cfgmod.load()
 STATIONS_BY_IP = cfgmod.stations_by_ip(CFG)
+REGISTERED_BEACONS = cfgmod.registered_beacons(CFG)
 LOCAL_PORT = CFG["local"]["data_port"]
 SMOOTHING_WINDOW = CFG["smoothing"]["window"]
 TAG_TIMEOUT_S = CFG["smoothing"]["tag_timeout_s"]
@@ -118,6 +119,8 @@ def handle_notification(source_ip: str, frame: dict):
             iq_raw = rec.get("iq")
             if not iq_raw:
                 continue
+            if mac_str(rec["a"]) not in REGISTERED_BEACONS:
+                continue  # only beacons listed in config.json beacons.registered are tracked
             try:
                 aoa = estimate_aoa(iq_raw, rec.get("f"), scan_cfg["ants"], scan_cfg["tspace"])
                 az, el = aoa["azimuth_deg"], aoa["elevation_deg"]

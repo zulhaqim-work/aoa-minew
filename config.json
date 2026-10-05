@@ -5,17 +5,32 @@
   "stations": [
     {
       "id": "station1",
-      "ip": "192.168.0.100",
+      "ip": "192.168.5.179",
       "cmd_port": 1337,
       "position_m": [0.0, 0.0],
       "height_m": 2.39,
       "azimuth_offset_deg": 0.0,
-      "aoa_mode": 1
+      "aoa_mode": 1,
+      "uws_id": "1.2.2.0"
     }
   ],
   "beacons": {
     "default_height_m": 0.0,
-    "height_overrides_m": {}
+    "height_overrides_m": {},
+    "registered": [
+      {"mac": "C2:03:03:00:4F:19", "uwsid": "1.2.2.1", "name": "Asset 1"},
+      {"mac": "C2:03:03:00:4F:1A", "uwsid": "1.2.2.2", "name": "Asset 2"},
+      {"mac": "C2:03:03:00:4F:1B", "uwsid": "1.2.2.3", "name": "Asset 3"}
+    ]
+  },
+  "uws": {
+    "enabled": true,
+    "url": "https://smartlab2.educator.com.my/iot/websvc/uws_Asset.wp",
+    "api_key": "",
+    "interval_s": 5,
+    "mode": 0,
+    "exe": "uwsd_Asset",
+    "timeout_s": 10
   },
   "smoothing": {
     "window": 7,

@@ -9,11 +9,13 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 import tag_tracker as tt
+import uws_client
 
 
 def main():
     tt.load_all_scan_configs()
     tt.start_receiver_thread()
+    uws_client.start_sender_thread()
 
     stations = tt.CFG["stations"]
     station_xs = [s.get("position_m", [0.0, 0.0])[0] for s in stations]
