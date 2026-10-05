@@ -10,7 +10,7 @@ Everything is driven by config.json -- no tables:
                            payload carries the uwsid, not the MAC)
 
 Body, one POST per station per interval:
-  {"Head": "<exe>#<mode>#<version>#<epoch>#<seq>", "Data0": "",
+  {"Head": "<exe>#<mode>#<version>#1#<epoch>#<seq>", "Data0": "",
    "Data1": {"type": 1, "uwsid": ..., "timestamp": <epoch>,
              "beacons": [{"type": 2, "corr_x": m, "corr_y": m, "uwsid": ...}]}}
 corr_x / corr_y are room-coordinate meters (floats), as computed by tag_tracker.
@@ -30,6 +30,7 @@ import tag_tracker as tt
 
 log = logging.getLogger("uws")
 
+TX_CMD = "1"  # Head TxCMD: device command id
 TYPE_GATEWAY = 1
 TYPE_BEACON = 2
 MAX_BEACONS = 50
@@ -77,7 +78,7 @@ def build_payloads(uws_cfg: dict, snapshot: dict, now: float | None = None) -> l
         if not station or not station.get("uws_id"):
             continue
         head = "#".join([uws_cfg["exe"], str(uws_cfg["mode"]), uws_cfg["version"],
-                         str(ts), str(_next_seq())])
+                         TX_CMD, str(ts), str(_next_seq())])
         payloads.append({
             "Head": head,
             "Data0": "",
@@ -98,7 +99,7 @@ def send_once(uws_cfg: dict) -> None:
         try:
             resp = requests.post(uws_cfg["url"], json=payload, headers=headers,
                                  timeout=uws_cfg["timeout_s"])
-            log.info("RECV HTTP %s %s", resp.status_code, resp.text.strip())
+            log.info("RECV HTTP %s %s", resp.status_code, resp.text.strip() or "(empty response)")
         except requests.RequestException as exc:
             log.error("send failed for %s, will retry next cycle (%s)", gw, exc)
 
