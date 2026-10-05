@@ -27,7 +27,7 @@
     "enabled": true,
     "url": "https://smartlab2.educator.com.my/iot/websvc/uws_Asset.wp",
     "api_key": "",
-    "interval_s": 5,
+    "interval_s": 120,
     "mode": 0,
     "exe": "uwsd_Asset",
     "timeout_s": 10
